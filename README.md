@@ -1,5 +1,9 @@
-# API Testing
+# API testing via Postman
 
-[Postman collection for REST API testing - DemoShopping](https://www.postman.com/spacecraft-participant-33679171/workspace/uliana-s-workspace/collection/38492261-3a7399af-aace-40ba-ae25-3be62e49ec5c?action=share&creator=38492261&active-environment=38492261-d36de2d1-48dd-45c3-b012-eb165acf7550).
+1. REST API
+- [Documentation in Swagger](https://qa.demoshopping.ru/api-docs/).
+- [Postman collection](https://github.com/briakina/api/blob/main/DemoShopping.postman_collection.json) for [DemoShopping](https://qa.demoshopping.ru/) Web App.
+- Examples of the [test Cases](https://github.com/briakina/api/blob/main/REST%20API%20Testing%20-%20Test%20Cases.pdf) for REST API testing. 
 
-[Postman collection for SOAP API testing - CountryInfoService](https://www.postman.com/spacecraft-participant-33679171/workspace/uliana-s-workspace/collection/38492261-a361a72c-3537-49f0-b00c-a350a8a5a6d4?action=share&creator=38492261&active-environment=38492261-d36de2d1-48dd-45c3-b012-eb165acf7550).
+2. SOAP API
+- [Postman collection](https://github.com/briakina/api/blob/main/CountryInfoService.postman_collection.json) for CountryInfoService, created on the basis of [WSDL](http://webservices.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL)
