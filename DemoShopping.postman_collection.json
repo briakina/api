@@ -1,0 +1,1348 @@
+{
+	"info": {
+		"_postman_id": "3a7399af-aace-40ba-ae25-3be62e49ec5c",
+		"name": "DemoShopping",
+		"description": "This collection contains methods for testing [https://qa.demoshopping.ru/](https://qa.demoshopping.ru/) web application.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38492261",
+		"_collection_link": "https://www.postman.com/spacecraft-participant-33679171/uliana-s-workspace/collection/fbcj3jb/demoshopping?action=share&source=collection_link&creator=38492261"
+	},
+	"item": [
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Getting the list of products",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//Tests\r",
+									"\r",
+									"// Check that the response status code is 200\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Check that the response time is less than 500ms\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"// Validate response body structure and types for each product\r",
+									"// Parse the JSON response\r",
+									"const jsonData = pm.response.json();\r",
+									"pm.test(\"Response body has correct structure and data formats\", function () {\r",
+									"    pm.expect(jsonData).to.be.an(\"array\").that.is.not.empty; // Check that the response is a non-empty array\r",
+									"\r",
+									"    jsonData.forEach(product => {\r",
+									"        pm.expect(product).to.have.property(\"product_id\").that.is.a(\"number\");\r",
+									"        pm.expect(product).to.have.property(\"name\").that.is.a(\"string\");\r",
+									"        pm.expect(product).to.have.property(\"description\").that.is.a(\"string\");\r",
+									"        pm.expect(product).to.have.property(\"price\").that.is.a(\"string\"); \r",
+									"        pm.expect(product).to.have.property(\"category\").that.is.a(\"string\");\r",
+									"        pm.expect(product).to.have.property(\"manufacturer\").that.is.a(\"string\");\r",
+									"        pm.expect(product).to.have.property(\"imageUrl\").that.is.a(\"string\");\r",
+									"        pm.expect(product).to.have.property(\"freeShipping\").that.is.oneOf([0, 1]); \r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"// Validate the response headers\r",
+									"pm.test(\"Response has correct headers\", function () {\r",
+									"    pm.expect(pm.response.headers.get('content-type')).to.include(\"application/json\");\r",
+									"    pm.expect(pm.response.headers.get('access-control-allow-origin')).to.equal(\"*\");\r",
+									"});\r",
+									"\r",
+									"// Check for uniqueness of product_id\r",
+									"pm.test(\"Product IDs are unique\", function () {\r",
+									"    const productIds = jsonData.map(product => product.product_id);\r",
+									"    const uniqueProductIds = new Set(productIds);\r",
+									"    pm.expect(uniqueProductIds.size).to.equal(productIds.length); // Ensure there are no duplicate IDs\r",
+									"});\r",
+									"\r",
+									"// Validate that price values are in the expected format\r",
+									"pm.test(\"Price is a valid number with up to two decimal places\", function () {\r",
+									"    jsonData.forEach(product => {\r",
+									"        pm.expect(product.price).to.match(/^\\d+(\\.\\d{1,2})?$/);\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/products",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Adding a new product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//ProductID - Variable value setting\r",
+									"var responseText = pm.response.text();\r",
+									"var idMatch = responseText.match(/ID:\\s*(\\d+)/);\r",
+									"\r",
+									"if (idMatch) {\r",
+									"    var productID = idMatch[1]; \r",
+									"    pm.environment.set(\"productID\", productID);  \r",
+									"} \r",
+									"else {\r",
+									"    console.log(\"ID не найден в ответе\");\r",
+									"}\r",
+									"\r",
+									"//Tests\r",
+									"\r",
+									"// Check that the response status code is 200 (Created)\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Check that the response time is less than 500ms\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"// Validate response headers\r",
+									"pm.test(\"Response has correct headers\", function () {\r",
+									"    pm.expect(pm.response.headers.get('content-type')).to.include(\"text/html; charset=utf-8\");\r",
+									"    pm.expect(pm.response.headers.get('access-control-allow-origin')).to.equal(\"*\");\r",
+									"});\r",
+									"\r",
+									"// Get the response text\r",
+									"let responseBody = pm.response.text();\r",
+									"// Check if the response body contains the expected success message\r",
+									"pm.test(\"Response body contains success message\", function () {\r",
+									"    pm.expect(responseBody).to.include(\"Продукт успешно добавлен с ID:\");\r",
+									"});\r",
+									"\r",
+									"// Check if the product ID is a number and exists in the response\r",
+									"pm.test(\"Product ID is present and is a number\", function () {\r",
+									"    var responseBody = pm.response.text();\r",
+									"    var productId = responseBody.match(/ID:\\s*(\\d+)/);\r",
+									"    pm.expect(productId).to.not.be.null; \r",
+									"    pm.expect(parseInt(productId[1])).to.be.a('number'); \r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									" "
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Random category - Variable value setting \r",
+									"const categories = ['Laptops', 'Phones', 'Watches'];\r",
+									"const randomCategory = categories[Math.floor(Math.random() * categories.length)];\r",
+									"pm.environment.set(\"randomCategory\", randomCategory);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{$randomProductName}}\",\r\n  \"description\": \"{{$randomLoremSentence}}\",\r\n  \"price\": {{$randomInt}},\r\n  \"category\": \"{{randomCategory}}\",\r\n  \"manufacturer\": \"{{$randomCompanyName}}\",\r\n  \"imageUrl\": \"https://images.example.com/products/{{$randomWord}}/{{$randomInt}}.jpg\",\r\n  \"freeShipping\": {{$randomBoolean}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/add-product",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"add-product"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search for a product by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//Tests\r",
+									"\r",
+									"// Ensure the productID variable is defined\r",
+									"pm.test(\"Product ID is defined\", function () {\r",
+									"    pm.expect(pm.environment.get(\"productID\")).to.not.be.null;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"// Check that the response status code is 200\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Parse the response body as JSON\r",
+									"let responseBody = pm.response.json();\r",
+									"\r",
+									"// Validate the structure and types of the response body\r",
+									"pm.test(\"Response body has correct structure and data formats\", function () {\r",
+									"    pm.expect(responseBody).to.be.an(\"object\");\r",
+									"    pm.expect(responseBody).to.have.all.keys(\"product_id\", \"name\", \"description\", \"price\", \"category\", \"manufacturer\", \"imageUrl\", \"freeShipping\");\r",
+									"\r",
+									"    // Validate data types\r",
+									"    pm.expect(responseBody.product_id).to.be.a(\"number\");\r",
+									"    pm.expect(responseBody.name).to.be.a(\"string\");\r",
+									"    pm.expect(responseBody.description).to.be.a(\"string\");\r",
+									"    pm.expect(responseBody.price).to.be.a(\"string\"); \r",
+									"    pm.expect(responseBody.category).to.be.a(\"string\");\r",
+									"    pm.expect(responseBody.manufacturer).to.be.a(\"string\");\r",
+									"    pm.expect(responseBody.imageUrl).to.be.a(\"string\");\r",
+									"    pm.expect(responseBody.freeShipping).to.be.a(\"number\"); \r",
+									"});\r",
+									"\r",
+									"// Validate response time is less than 500ms\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"// Validate the response headers\r",
+									"pm.test(\"Response has correct headers\", function () {\r",
+									"    pm.expect(pm.response.headers.get('access-control-allow-origin')).to.equal(\"*\");\r",
+									"    pm.expect(pm.response.headers.get('content-type')).to.include(\"application/json; charset=utf-8\");\r",
+									"    pm.expect(pm.response.headers.get('connection')).to.equal(\"keep-alive\");\r",
+									"    pm.expect(pm.response.headers.get('date')).to.be.a(\"string\"); \r",
+									"    pm.expect(pm.response.headers.get('server')).to.include(\"nginx\");\r",
+									"    pm.expect(pm.response.headers.get('x-powered-by')).to.include(\"Express\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/products/id/{{productID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"id",
+								"{{productID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Complete update of the product by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Получить текущее значение productID после запроса\r",
+									"var newProductId = parseInt(pm.environment.get(\"newproductID\"));\r",
+									"// Убедиться, что переменная productID установлена на новое значение, чтобы далее не выставлять значение вручную\r",
+									"pm.environment.set(\"productID\", newProductId);\r",
+									"\r",
+									"\r",
+									"//Tests\r",
+									"\r",
+									"// Check that the response status code is 200\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Check that the response time is less than 500ms\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"// Check if the response body contains the expected success message\r",
+									"pm.test(\"Response body contains success message\", function () {\r",
+									"    pm.expect(responseBody).to.include(\"Товар обновлён\");\r",
+									"});\r",
+									"\r",
+									"// Validate the response headers\r",
+									"pm.test(\"Response has correct headers\", function () {\r",
+									"    pm.expect(pm.response.headers.get('access-control-allow-origin')).to.equal(\"*\");\r",
+									"    pm.expect(pm.response.headers.get('content-type')).to.include(\"text/html; charset=utf-8\");\r",
+									"    pm.expect(pm.response.headers.get('connection')).to.equal(\"keep-alive\");\r",
+									"    pm.expect(pm.response.headers.get('date')).to.be.a(\"string\");\r",
+									"    pm.expect(pm.response.headers.get('server')).to.include(\"nginx\");\r",
+									"    pm.expect(pm.response.headers.get('x-powered-by')).to.include(\"Express\");\r",
+									"});\r",
+									"\r",
+									"// Fetch updated product details to verify the update\r",
+									"var prodId = pm.environment.get(\"productID\"); // Получение productID из переменных окружения\r",
+									"\r",
+									"pm.sendRequest({\r",
+									"    url: `https://qa.demoshopping.ru/products/id/${prodId}`, // Использование переменной productID\r",
+									"    method: 'GET',\r",
+									"    header: {\r",
+									"        'Content-Type': 'application/json'\r",
+									"    }\r",
+									"}, function (err, res) {\r",
+									"    pm.test(\"Fetched replased product details are correct\", function () {\r",
+									"        pm.expect(res).to.have.status(200); \r",
+									"        var jsonData = res.json();\r",
+									"        pm.expect(jsonData.name).to.eql(\"Updated product\"); \r",
+									"        pm.expect(jsonData.description).to.eql(\"This is a completely updated product.\"); \r",
+									"        pm.expect(parseFloat(jsonData.price)).to.eql(150);\r",
+									"        pm.expect(jsonData.category).to.eql(\"Laptops\"); \r",
+									"        pm.expect(jsonData.manufacturer).to.eql(\"Samsung\"); \r",
+									"        pm.expect(jsonData.imageUrl).to.eql(\"http://example.com/image.jpg\"); \r",
+									"        pm.expect(Boolean(jsonData.freeShipping)).to.be.false;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Получить текущее значение productID из переменных окружения\r",
+									"var currentProductId = parseInt(pm.environment.get(\"productID\"));\r",
+									"// Увеличить значение на 1\r",
+									"var newProductId = currentProductId + 1;\r",
+									"// Создать переменную окружения с новым значением, чтобы использовать его в теле запроса\r",
+									"pm.environment.set(\"newproductID\", newProductId);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"product_id\": {{newproductID}},\r\n  \"name\": \"Updated product\",\r\n  \"description\": \"This is a completely updated product.\",\r\n  \"price\": 150,\r\n  \"category\": \"Laptops\",\r\n  \"manufacturer\": \"Samsung\",\r\n  \"imageUrl\": \"http://example.com/image.jpg\",\r\n  \"freeShipping\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/products/id/{{productID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"id",
+								"{{productID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Partial update of product by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//Tests\r",
+									"\r",
+									"// Check that the response status code is 200\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Check that the response time is less than 500ms\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"// Check if the response body contains the success message\r",
+									"pm.test(\"Response contains success message\", function () {\r",
+									"    var responseBody = pm.response.text();\r",
+									"    pm.expect(responseBody).to.include(\"Товар частично обновлён\");\r",
+									"});\r",
+									"\r",
+									"// Fetch updated product details to verify the update\r",
+									"var prodId = pm.environment.get(\"productID\"); // Получение значения productID из переменных окружения\r",
+									"\r",
+									"pm.sendRequest({\r",
+									"    url: `https://qa.demoshopping.ru/products/id/${prodId}`, // Использование переменной productID\r",
+									"    method: 'GET',\r",
+									"    header: {\r",
+									"        'Content-Type': 'application/json'\r",
+									"    }\r",
+									"}, function (err, res) {\r",
+									"    pm.test(\"Fetched updated product details are correct\", function () {\r",
+									"        pm.expect(res).to.have.status(200); \r",
+									"        var jsonData = res.json();\r",
+									"        pm.expect(jsonData.name).to.eql(\"Partially updated product\");\r",
+									"        pm.expect(jsonData.description).to.eql(\"This is a partially updated product.\");\r",
+									"        pm.expect(parseFloat(jsonData.price)).to.eql(120);\r",
+									"        pm.expect(jsonData.category).to.eql(\"Laptops\");\r",
+									"        pm.expect(jsonData.manufacturer).to.eql(\"Apple\");\r",
+									"        pm.expect(jsonData.imageUrl).to.eql(\"http://example.com/image2.jpg\");\r",
+									"        pm.expect(Boolean(jsonData.freeShipping)).to.be.true;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"// Validate the response headers\r",
+									"pm.test(\"Response has correct headers\", function () {\r",
+									"    pm.expect(pm.response.headers.get('access-control-allow-origin')).to.equal(\"*\");\r",
+									"    pm.expect(pm.response.headers.get('content-type')).to.include(\"text/html; charset=utf-8\");\r",
+									"    pm.expect(pm.response.headers.get('connection')).to.equal(\"keep-alive\");\r",
+									"    pm.expect(pm.response.headers.get('date')).to.be.a(\"string\");\r",
+									"    pm.expect(pm.response.headers.get('server')).to.include(\"nginx\");\r",
+									"    pm.expect(pm.response.headers.get('x-powered-by')).to.include(\"Express\");\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Partially updated product\",\r\n  \"description\": \"This is a partially updated product.\",\r\n  \"price\": 120.00,\r\n  \"category\": \"Laptops\",\r\n  \"manufacturer\": \"Apple\",\r\n  \"imageUrl\": \"http://example.com/image2.jpg\",\r\n  \"freeShipping\": true\r\n  }\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/products/id/{{productID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"id",
+								"{{productID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deleting a product by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//Tests\r",
+									"\r",
+									"// Check that the response status code is 200\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Check that the response time is less than 500ms\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"// Check if the response body contains the success message\r",
+									"pm.test(\"Response contains success message\", function () {\r",
+									"    var responseBody = pm.response.text();\r",
+									"    pm.expect(responseBody).to.include(\"Товар удалён\"); // Замените на актуальное сообщение\r",
+									"});\r",
+									"\r",
+									"// Check if the product has been deleted by sending a GET request\r",
+									"pm.sendRequest({\r",
+									"    url: 'https://qa.demoshopping.ru/products/id/2297', // ID удалённого продукта\r",
+									"    method: 'GET',\r",
+									"    header: {\r",
+									"        'Content-Type': 'application/json'\r",
+									"    }\r",
+									"}, function (err, res) {\r",
+									"    pm.test(\"Deleted product returns 404\", function () {\r",
+									"        pm.expect(res).to.have.status(404); // Убедитесь, что возвращается статус 404\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"// Validate the response headers\r",
+									"pm.test(\"Response has correct headers\", function () {\r",
+									"    pm.expect(pm.response.headers.get('access-control-allow-origin')).to.equal(\"*\");\r",
+									"    pm.expect(pm.response.headers.get('content-type')).to.include(\"text/html; charset=utf-8\");\r",
+									"    pm.expect(pm.response.headers.get('connection')).to.equal(\"keep-alive\");\r",
+									"    pm.expect(pm.response.headers.get('date')).to.be.a(\"string\");\r",
+									"    pm.expect(pm.response.headers.get('server')).to.include(\"nginx\");\r",
+									"    pm.expect(pm.response.headers.get('x-powered-by')).to.include(\"Express\");\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/products/id/{{productID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"id",
+								"{{productID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search for products by category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/products/FindByCategory/?category=Laptops",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"FindByCategory",
+								""
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "Laptops"
+								},
+								{
+									"key": "category",
+									"value": "Phones",
+									"disabled": true
+								},
+								{
+									"key": "category",
+									"value": "Watches",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search for products by manufacturer",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/products/FindByManufacturer?manufacturer=Huawei",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"FindByManufacturer"
+							],
+							"query": [
+								{
+									"key": "manufacturer",
+									"value": "Apple",
+									"disabled": true
+								},
+								{
+									"key": "manufacturer",
+									"value": "Samsung",
+									"disabled": true
+								},
+								{
+									"key": "manufacturer",
+									"value": "Xiaomi",
+									"disabled": true
+								},
+								{
+									"key": "manufacturer",
+									"value": "Huawei"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search for products by shipping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/products/FindByShipping?freeShipping=maybe",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"FindByShipping"
+							],
+							"query": [
+								{
+									"key": "freeShipping",
+									"value": "true",
+									"description": "Free shipping is available",
+									"disabled": true
+								},
+								{
+									"key": "freeShipping",
+									"value": "false",
+									"description": "Free shipping is not available",
+									"disabled": true
+								},
+								{
+									"key": "freeShipping",
+									"value": "maybe",
+									"description": "Invalid value for the Free Shipping parameter"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Filter products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/products/filter?category=Laptops&manufacturer=Samsung&freeShipping=false&maxPrice=1000",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"filter"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "Laptops"
+								},
+								{
+									"key": "category",
+									"value": "Phones",
+									"disabled": true
+								},
+								{
+									"key": "category",
+									"value": "Watches",
+									"disabled": true
+								},
+								{
+									"key": "manufacturer",
+									"value": "Apple",
+									"disabled": true
+								},
+								{
+									"key": "manufacturer",
+									"value": "Huawei",
+									"disabled": true
+								},
+								{
+									"key": "manufacturer",
+									"value": "Samsung"
+								},
+								{
+									"key": "manufacturer",
+									"value": "Xiaomi",
+									"disabled": true
+								},
+								{
+									"key": "freeShipping",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "freeShipping",
+									"value": "false"
+								},
+								{
+									"key": "minPrice",
+									"value": "250",
+									"disabled": true
+								},
+								{
+									"key": "maxPrice",
+									"value": "1000"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "noauth"
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "User authorization",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"{{username}}\",\r\n  \"password\": \"{{password}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/login",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User registration",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"newuser\",\r\n  \"password\": \"123456qwerty\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/register",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List all user_id and user logins",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/users",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Adding a new user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var responseText = pm.response.text();\r",
+									"\r",
+									"// Поиск ID в тексте с помощью регулярного выражения\r",
+									"var idMatch = responseText.match(/ID:\\s*(\\d+)/);\r",
+									"\r",
+									"// Если ID найден, сохраняем его в переменную\r",
+									"if (idMatch) {\r",
+									"    var userID = idMatch[1]; \r",
+									"    pm.environment.set(\"userID\", userID);  \r",
+									"} \r",
+									"else {\r",
+									"    console.log(\"ID не найден в ответе\");\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"adduser\",\r\n  \"password\": \"123456qwerty\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deleting a user by ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/users/{{userID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"{{userID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "noauth"
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Cart",
+			"item": [
+				{
+					"name": "Adding an item to the shopping cart",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"productId\": \"{{productID}}\",\r\n  \"quantity\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/cart",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"cart"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieving the contents of the user's cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseBody = pm.response.text();\r",
+									"const cartItemIdMatch = responseBody.match(/\"cart_item_id\":\\s*(\\d+)/);\r",
+									"\r",
+									"if (cartItemIdMatch && cartItemIdMatch[1]) {\r",
+									"    pm.environment.set(\"cartitemID\", cartItemIdMatch[1]);\r",
+									"    console.log(\"cartitemID set to:\", cartItemIdMatch[1]);  // Log for debugging\r",
+									"} else {\r",
+									"    console.log(\"cart_item_id not found in the response\");\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/getCart",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"getCart"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Updating the quantity of a product in the user's cart",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"quantity\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/cart/{{cartitemID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"cart",
+								"{{cartitemID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Removing a product from the user's cart",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/cart/{{cartitemID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"cart",
+								"{{cartitemID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Creating an order with the items in the user's cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseJson = pm.response.json();\r",
+									"\r",
+									"if (responseJson.orderId) {\r",
+									"    pm.environment.set(\"orderID\", responseJson.orderId);\r",
+									"    console.log(\"orderID set to:\", responseJson.orderId);  // Log for debugging\r",
+									"} else {\r",
+									"    console.log(\"orderId not found in the response\");\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/orders",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieving a list of user orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/user-orders",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user-orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Updating the quantity of a product in the order",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"quantity\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/orders/{{orderID}}/products/{{productID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders",
+								"{{orderID}}",
+								"products",
+								"{{productID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Removing an item from the order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/orders/{{orderID}}/products/{{productID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders",
+								"{{orderID}}",
+								"products",
+								"{{productID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Updating of the total amount of unpaid user orders",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/update-orders-total",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"update-orders-total"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieving data about paid orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/orders-history",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"orders-history"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Payment",
+			"item": [
+				{
+					"name": "Updating card and PayPal balances",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/updateBalances",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"updateBalances"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Payment for user orders",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"card_type\": \"VISA\",\r\n  \"card_code\": \"8820354696467284\",\r\n  \"expiry_month\": 12,\r\n  \"expiry_year\": 26,\r\n  \"cvv\": \"123\",\r\n  \"email\": \"validemail@example.com\",\r\n  \"email_paypal\": \"validemail@example.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/pay",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pay"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	]
+}
